@@ -1,0 +1,12 @@
+# Estado personal de Xcode (ventanas, breakpoints, esquemas de usuario)
+xcuserdata/
+*.xcuserstate
+
+# Archivos del Finder y pegados sueltos
+.DS_Store
+*.textClipping
+
+# Build y dependencias
+build/
+DerivedData/
+.build/
