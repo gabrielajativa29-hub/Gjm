@@ -23,6 +23,13 @@ enum FileFormat: String, Codable, CaseIterable {
     case pdf, epub, txt, md
 }
 
+/// Si el libro necesita reconocimiento de texto (OCR) para poder buscarse.
+enum OCRStatus: String, Codable, CaseIterable {
+    case noAplica = "no_aplica"
+    /// La mayoría de las páginas no tiene capa de texto (PDF escaneado).
+    case pendiente
+}
+
 /// Libro de la biblioteca con su ficha bibliográfica editable.
 struct Book: Codable, Identifiable, Hashable, FetchableRecord, MutablePersistableRecord {
     static let databaseTableName = "book"
@@ -55,6 +62,9 @@ struct Book: Codable, Identifiable, Hashable, FetchableRecord, MutablePersistabl
     var language: String = "es"
     /// Página del PDF menos página impresa. Se usa para calcular la página citada (fase 3).
     var paginationOffset: Int = 0
+    /// Número de páginas del archivo (0 si se desconoce, por ejemplo en libros anteriores a v4).
+    var paginasTotales: Int = 0
+    var ocrEstado: OCRStatus = .noAplica
 
     var importedAt: Date = .now
 

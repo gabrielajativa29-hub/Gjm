@@ -109,6 +109,27 @@ final class LibraryStore {
             }
             try db.create(index: "pagina_por_libro", on: "pagina", columns: ["bookId"])
         }
+        migrator.registerMigration("v4-ocr-y-guiones") { db in
+            try db.alter(table: "book") { t in
+                t.add(column: "paginasTotales", .integer).notNull().defaults(to: 0)
+                t.add(column: "ocrEstado", .text).notNull().defaults(to: OCRStatus.noAplica.rawValue)
+            }
+            // Libros sin ninguna página con texto: necesitan OCR.
+            try db.execute(sql: """
+                UPDATE book SET ocrEstado = ?
+                WHERE id NOT IN (SELECT DISTINCT bookId FROM pagina)
+                """, arguments: [OCRStatus.pendiente.rawValue])
+            // Reindexa las páginas existentes con la unión de palabras partidas por guion.
+            let paginas = try Row.fetchAll(db, sql: "SELECT id, texto FROM pagina")
+            for pagina in paginas {
+                let id: Int64 = pagina["id"]
+                let texto: String = pagina["texto"]
+                try db.execute(
+                    sql: "UPDATE pagina SET textoNorm = ? WHERE id = ?",
+                    arguments: [TextNormalizer.indexKey(texto), id]
+                )
+            }
+        }
         return migrator
     }
 
@@ -184,7 +205,10 @@ final class LibraryStore {
             do {
                 try book.insert(db)
                 if let libroId = book.id {
-                    try Self.indexarPaginas(de: pdf, libroId: libroId, en: db)
+                    let conTexto = try Self.indexarPaginas(de: pdf, libroId: libroId, en: db)
+                    try Self.registrarEstadoOCR(libroId: libroId, paginasTotales: pdf.pageCount, paginasConTexto: conTexto, en: db)
+                    book.paginasTotales = pdf.pageCount
+                    book.ocrEstado = Self.estadoOCR(paginasTotales: pdf.pageCount, paginasConTexto: conTexto)
                 }
             } catch {
                 // Si la inserción falla, no dejar un archivo huérfano.
@@ -198,15 +222,33 @@ final class LibraryStore {
     // MARK: - Texto de las páginas y búsqueda de citas
 
     /// Guarda el texto de cada página del PDF para poder buscar citas.
-    private static func indexarPaginas(de pdf: PDFDocument, libroId: Int64, en db: Database) throws {
+    /// Devuelve cuántas páginas tenían texto.
+    @discardableResult
+    private static func indexarPaginas(de pdf: PDFDocument, libroId: Int64, en db: Database) throws -> Int {
+        var conTexto = 0
         for indice in 0..<pdf.pageCount {
             let texto = (pdf.page(at: indice)?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             guard !texto.isEmpty else { continue }
+            conTexto += 1
             try db.execute(
                 sql: "INSERT INTO pagina (bookId, numero, texto, textoNorm) VALUES (?, ?, ?, ?)",
-                arguments: [libroId, indice + 1, texto, TextNormalizer.key(texto)]
+                arguments: [libroId, indice + 1, texto, TextNormalizer.indexKey(texto)]
             )
         }
+        return conTexto
+    }
+
+    /// Un libro necesita OCR si más de la mitad de sus páginas no tiene texto.
+    static func estadoOCR(paginasTotales: Int, paginasConTexto: Int) -> OCRStatus {
+        paginasTotales > 0 && paginasConTexto * 2 < paginasTotales ? .pendiente : .noAplica
+    }
+
+    /// Guarda en la ficha el número de páginas y el estado de OCR.
+    private static func registrarEstadoOCR(libroId: Int64, paginasTotales: Int, paginasConTexto: Int, en db: Database) throws {
+        try db.execute(
+            sql: "UPDATE book SET paginasTotales = ?, ocrEstado = ? WHERE id = ?",
+            arguments: [paginasTotales, estadoOCR(paginasTotales: paginasTotales, paginasConTexto: paginasConTexto).rawValue, libroId]
+        )
     }
 
     /// Indexa los libros que todavía no tienen páginas guardadas (por ejemplo, los importados antes de esta versión).
@@ -222,7 +264,8 @@ final class LibraryStore {
             let nombre: String = fila["fileName"]
             guard let pdf = PDFDocument(url: folder.appendingPathComponent(nombre)) else { continue }
             try dbQueue.write { db in
-                try Self.indexarPaginas(de: pdf, libroId: libroId, en: db)
+                let conTexto = try Self.indexarPaginas(de: pdf, libroId: libroId, en: db)
+                try Self.registrarEstadoOCR(libroId: libroId, paginasTotales: pdf.pageCount, paginasConTexto: conTexto, en: db)
             }
         }
     }

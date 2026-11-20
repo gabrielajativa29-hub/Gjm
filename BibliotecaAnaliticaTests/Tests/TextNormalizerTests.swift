@@ -22,4 +22,21 @@ final class TextNormalizerTests: XCTestCase {
     func testEmptyQueryMatchesEverything() {
         XCTAssertTrue(TextNormalizer.matches("cualquier cosa", query: "   "))
     }
+
+    func testJoinsWordHyphenatedAtLineEnd() {
+        XCTAssertEqual(TextNormalizer.dehyphenate("la pa-\nlabra"), "la palabra")
+        XCTAssertEqual(TextNormalizer.indexKey("la pa-\nlabra"), "la palabra")
+    }
+
+    func testKeepsHyphenWhenNextLineStartsWithCapital() {
+        XCTAssertEqual(TextNormalizer.dehyphenate("Freud-\nLacan"), "Freud-\nLacan")
+    }
+
+    func testHyphenWithoutLineBreakIsUntouched() {
+        XCTAssertEqual(TextNormalizer.dehyphenate("psico-analisis"), "psico-analisis")
+    }
+
+    func testIndexKeyFindsWordSplitAcrossLines() {
+        XCTAssertTrue(TextNormalizer.matches(TextNormalizer.indexKey("el incons-\nciente freudiano"), query: "inconsciente"))
+    }
 }
