@@ -3,7 +3,7 @@ import SwiftUI
 /// Destinos de la pantalla de inicio: autores, carpetas propias y la biblioteca completa.
 enum CategoriaBiblioteca: Hashable, Identifiable {
     case freud, lacan, miller, varios
-    case psiquiatriaClasica, psicopatologia, josemariaAlvarez
+    case psiquiatriaClasica, psicopatologia, josemariaAlvarez, cuadernosICdeBA
     case todos
 
     var id: Self { self }
@@ -17,6 +17,7 @@ enum CategoriaBiblioteca: Hashable, Identifiable {
         case .psiquiatriaClasica: return "Psiquiatría clásica"
         case .psicopatologia: return "Psicopatología"
         case .josemariaAlvarez: return "José María Álvarez"
+        case .cuadernosICdeBA: return "Cuadernos ICdeBA"
         case .todos: return "Todos los libros"
         }
     }
@@ -38,6 +39,7 @@ enum CategoriaBiblioteca: Hashable, Identifiable {
         case .psiquiatriaClasica: return "psiquiatria-clasica"
         case .psicopatologia: return "psicopatologia"
         case .josemariaAlvarez: return "jose-maria-alvarez"
+        case .cuadernosICdeBA: return "cuadernos-icdeba"
         default: return nil
         }
     }
@@ -58,6 +60,7 @@ enum CategoriaBiblioteca: Hashable, Identifiable {
         case .psiquiatriaClasica: return "stethoscope"
         case .psicopatologia: return "brain.head.profile"
         case .josemariaAlvarez: return "person.fill"
+        case .cuadernosICdeBA: return "folder.fill"
         case .todos: return "list.bullet"
         default: return "person.fill"
         }
@@ -65,7 +68,7 @@ enum CategoriaBiblioteca: Hashable, Identifiable {
 
     static let todas: [CategoriaBiblioteca] = [
         .freud, .lacan, .miller, .varios,
-        .psiquiatriaClasica, .psicopatologia, .josemariaAlvarez,
+        .psiquiatriaClasica, .psicopatologia, .josemariaAlvarez, .cuadernosICdeBA,
         .todos
     ]
 }

@@ -61,7 +61,9 @@ struct LibraryView: View {
                     ContentUnavailableView(
                         "Sin libros",
                         systemImage: "books.vertical",
-                        description: Text("Añade un PDF o un EPUB con el botón +, o arrástralo a la ventana.")
+                        description: Text(etiqueta == "cuadernos-icdeba"
+                            ? "Usa el botón de carpeta (arriba a la derecha) y elige «Cuadernos ICdeBA» dentro de Documentos."
+                            : "Añade un PDF o un EPUB con el botón +, o arrástralo a la ventana.")
                     )
                 } else {
                     ContentUnavailableView.search(text: query)

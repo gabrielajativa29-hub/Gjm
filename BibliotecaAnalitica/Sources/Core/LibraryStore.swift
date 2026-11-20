@@ -434,6 +434,7 @@ final class LibraryStore {
         let normalizado = TextNormalizer.key(carpeta)
         if normalizado.contains("psiquiatria clasica") { return "psiquiatria-clasica" }
         if normalizado.contains("psicopatologia") { return "psicopatologia" }
+        if normalizado.contains("cuadernos icdeba") { return "cuadernos-icdeba" }
         return nil
     }
 
