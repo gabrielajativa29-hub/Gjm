@@ -1,5 +1,10 @@
 import SwiftUI
 import UniformTypeIdentifiers
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 /// Lista de libros. Puede mostrar toda la biblioteca o solo los de un autor.
 /// No tiene NavigationStack propio: se apila desde AutoresView.
@@ -25,7 +30,7 @@ struct LibraryView: View {
                         .font(.system(.body, design: .serif))
                         .foregroundStyle(.secondary)
                         .frame(minWidth: 32, alignment: .trailing)
-                    BookRow(book: book)
+                    BookRow(book: book, portada: store.portadaURL(for: book))
                 }
             }
             .contextMenu {
@@ -209,15 +214,21 @@ struct LibraryView: View {
 
 struct BookRow: View {
     let book: Book
+    var portada: URL? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(book.title)
-                .font(.system(.headline, design: .serif))
-            if !subtitle.isEmpty {
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        HStack(alignment: .top, spacing: 12) {
+            PortadaView(url: portada)
+                .frame(width: 40, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 3))
+            VStack(alignment: .leading, spacing: 4) {
+                Text(book.title)
+                    .font(.system(.headline, design: .serif))
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -226,5 +237,37 @@ struct BookRow: View {
         [book.authors, book.editionYear.map { String($0) } ?? ""]
             .filter { !$0.isEmpty }
             .joined(separator: " · ")
+    }
+}
+
+/// Portada del libro. Si no hay imagen, muestra un icono de libro.
+struct PortadaView: View {
+    let url: URL?
+
+    var body: some View {
+        Group {
+            if let url, let imagen = Self.cargar(url) {
+                imagen
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Image(systemName: "book.closed")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(8)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .background(Color.secondary.opacity(0.1))
+    }
+
+    private static func cargar(_ url: URL) -> Image? {
+        #if os(macOS)
+        guard let imagen = NSImage(contentsOf: url) else { return nil }
+        return Image(nsImage: imagen)
+        #else
+        guard let imagen = UIImage(contentsOfFile: url.path) else { return nil }
+        return Image(uiImage: imagen)
+        #endif
     }
 }

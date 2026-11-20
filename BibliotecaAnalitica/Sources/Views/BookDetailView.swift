@@ -17,6 +17,11 @@ struct BookDetailView: View {
 
     var body: some View {
         Form {
+            Section {
+                PortadaView(url: store.portadaURL(for: draft))
+                    .frame(maxWidth: .infinity, maxHeight: 220)
+            }
+
             Section("Obra") {
                 TextField("Título", text: $draft.title)
                 TextField("Autor(es)", text: $draft.authors)

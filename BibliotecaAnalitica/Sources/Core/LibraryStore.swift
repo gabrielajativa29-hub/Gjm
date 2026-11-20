@@ -1,6 +1,11 @@
 import Foundation
 import GRDB
 import PDFKit
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 enum ImportResult {
     case added(Book)
@@ -50,6 +55,7 @@ final class LibraryStore {
         try Self.migrator.migrate(dbQueue)
         // Indexa el texto de los libros que aún no tienen páginas guardadas.
         try? indexarLibrosPendientes()
+        asegurarPortadas()
     }
 
     /// Carpeta por defecto en Application Support. La fase 7 la pasará a iCloud Drive.
@@ -209,6 +215,7 @@ final class LibraryStore {
                     try Self.registrarEstadoOCR(libroId: libroId, paginasTotales: pdf.pageCount, paginasConTexto: conTexto, en: db)
                     book.paginasTotales = pdf.pageCount
                     book.ocrEstado = Self.estadoOCR(paginasTotales: pdf.pageCount, paginasConTexto: conTexto)
+                    try? Self.guardarPortada(de: pdf, en: portadaURL(for: book))
                 }
             } catch {
                 // Si la inserción falla, no dejar un archivo huérfano.
@@ -345,13 +352,57 @@ final class LibraryStore {
         folder.appendingPathComponent(book.fileName)
     }
 
-    /// Borra el libro de la base de datos y, después, su archivo PDF de la carpeta de la biblioteca.
+    // MARK: - Portadas
+
+    /// Imagen JPEG de la portada. Se guarda en una subcarpeta con el nombre de la huella del libro.
+    /// Puede no existir todavía (por ejemplo, si el libro es un EPUB o si la generación falló).
+    func portadaURL(for book: Book) -> URL {
+        folder
+            .appendingPathComponent("Portadas", isDirectory: true)
+            .appendingPathComponent("\(book.sha256).jpg")
+    }
+
+    /// Genera la portada de un PDF a partir de su primera página, de 300 px de ancho.
+    static func guardarPortada(de pdf: PDFDocument, en destino: URL) throws {
+        guard let primera = pdf.page(at: 0) else { return }
+        let caja = primera.bounds(for: .mediaBox)
+        guard caja.width > 0 else { return }
+        let ancho: CGFloat = 300
+        let alto = ancho * caja.height / caja.width
+        let imagen = primera.thumbnail(of: CGSize(width: ancho, height: alto), for: .mediaBox)
+        #if os(macOS)
+        guard let tiff = imagen.tiffRepresentation,
+              let representacion = NSBitmapImageRep(data: tiff),
+              let jpeg = representacion.representation(using: .jpeg, properties: [.compressionFactor: 0.8])
+        else { return }
+        #else
+        guard let jpeg = imagen.jpegData(compressionQuality: 0.8) else { return }
+        #endif
+        try FileManager.default.createDirectory(at: destino.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try jpeg.write(to: destino, options: .atomic)
+    }
+
+    /// Genera las portadas que falten en los PDF (libros importados antes de esta versión).
+    func asegurarPortadas() {
+        guard let libros = try? dbQueue.read({ db in
+            try Book.filter(Column("format") == FileFormat.pdf.rawValue).fetchAll(db)
+        }) else { return }
+        for libro in libros {
+            let destino = portadaURL(for: libro)
+            guard !FileManager.default.fileExists(atPath: destino.path),
+                  let pdf = PDFDocument(url: fileURL(for: libro)) else { continue }
+            try? Self.guardarPortada(de: pdf, en: destino)
+        }
+    }
+
+    /// Borra el libro de la base de datos y, después, su archivo PDF y su portada.
     func delete(_ book: Book) throws {
         try dbQueue.write { db in
             try db.execute(sql: "DELETE FROM pagina WHERE bookId = ?", arguments: [book.id])
             _ = try book.delete(db)
         }
         try? FileManager.default.removeItem(at: fileURL(for: book))
+        try? FileManager.default.removeItem(at: portadaURL(for: book))
     }
 
     /// Guarda cambios de una ficha existente. Devuelve el libro en conflicto si la ficha
