@@ -58,6 +58,13 @@ struct BookDetailView: View {
             Section("Archivo") {
                 LabeledContent("Formato", value: draft.format.rawValue.uppercased())
                 LabeledContent("Huella SHA-256", value: String(draft.sha256.prefix(16)) + "…")
+                if draft.format == .epub {
+                    NavigationLink {
+                        EPUBReaderView(store: store, book: draft)
+                    } label: {
+                        Label("Leer libro", systemImage: "book")
+                    }
+                }
             }
         }
         .navigationTitle(draft.title)

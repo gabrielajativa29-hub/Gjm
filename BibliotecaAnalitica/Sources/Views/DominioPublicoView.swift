@@ -41,22 +41,39 @@ struct DominioPublicoView: View {
 
             Section("Resultados") {
                 ForEach(resultados) { libro in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(libro.title)
-                            .font(.system(.headline, design: .serif))
-                        if !libro.autorPrincipal.isEmpty {
-                            Text(libro.autorPrincipal)
-                                .font(.subheadline)
+                    HStack(alignment: .top, spacing: 12) {
+                        AsyncImage(url: libro.portadaURL) { imagen in
+                            imagen
+                                .resizable()
+                                .scaledToFit()
+                        } placeholder: {
+                            Image(systemName: "book.closed")
+                                .resizable()
+                                .scaledToFit()
+                                .padding(8)
                                 .foregroundStyle(.secondary)
                         }
-                        if libro.esDescargableAutomaticamente {
-                            Button("Descargar PDF") {
-                                Task { await descargar(libro) }
+                        .frame(width: 60, height: 84)
+                        .background(Color.secondary.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(libro.title)
+                                .font(.system(.headline, design: .serif))
+                            if !libro.autorPrincipal.isEmpty {
+                                Text(libro.autorPrincipal)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
-                        } else {
-                            Text("No se descarga: sin PDF o sin marca de dominio público.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                            if libro.esDescargableAutomaticamente {
+                                Button("Descargar PDF") {
+                                    Task { await descargar(libro) }
+                                }
+                            } else {
+                                Text("No se descarga: sin PDF o sin marca de dominio público.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .padding(.vertical, 4)

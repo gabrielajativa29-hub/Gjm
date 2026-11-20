@@ -21,6 +21,12 @@ struct LibraryView: View {
     @State private var bookToDelete: Book?
     @State private var isImportingFolder = false
 
+    /// Formatos que se pueden importar.
+    private static let extensionesImportables = ["pdf", "epub"]
+    private static var tiposImportables: [UTType] {
+        [UTType.pdf] + (UTType(filenameExtension: "epub").map { [$0] } ?? [])
+    }
+
     var body: some View {
         List {
             ForEach(Array(books.enumerated()), id: \.element.id) { indice, book in
@@ -55,7 +61,7 @@ struct LibraryView: View {
                     ContentUnavailableView(
                         "Sin libros",
                         systemImage: "books.vertical",
-                        description: Text("Añade un PDF con el botón +, o arrástralo a la ventana.")
+                        description: Text("Añade un PDF o un EPUB con el botón +, o arrástralo a la ventana.")
                     )
                 } else {
                     ContentUnavailableView.search(text: query)
@@ -90,7 +96,7 @@ struct LibraryView: View {
         }
         .fileImporter(
             isPresented: $isImporting,
-            allowedContentTypes: [.pdf],
+            allowedContentTypes: Self.tiposImportables,
             allowsMultipleSelection: true
         ) { result in
             switch result {
@@ -106,7 +112,7 @@ struct LibraryView: View {
                 var esCarpeta: ObjCBool = false
                 if FileManager.default.fileExists(atPath: url.path, isDirectory: &esCarpeta), esCarpeta.boolValue {
                     importFolder(url)
-                } else if url.pathExtension.lowercased() == "pdf" {
+                } else if Self.extensionesImportables.contains(url.pathExtension.lowercased()) {
                     importFiles([url])
                 }
             }
@@ -175,11 +181,11 @@ struct LibraryView: View {
             return
         }
         var pdfs: [URL] = []
-        for case let url as URL in enumerador where url.pathExtension.lowercased() == "pdf" {
+        for case let url as URL in enumerador where Self.extensionesImportables.contains(url.pathExtension.lowercased()) {
             pdfs.append(url)
         }
         if pdfs.isEmpty {
-            alertMessage = "No hay archivos PDF en esa carpeta."
+            alertMessage = "No hay archivos PDF ni EPUB en esa carpeta."
             return
         }
         importFiles(
@@ -193,7 +199,10 @@ struct LibraryView: View {
         var messages: [String] = []
         for url in urls {
             do {
-                switch try store.importPDF(from: url, grupo: grupo, etiqueta: etiqueta) {
+                let resultado = url.pathExtension.lowercased() == "epub"
+                    ? try store.importEPUB(from: url, grupo: grupo, etiqueta: etiqueta)
+                    : try store.importPDF(from: url, grupo: grupo, etiqueta: etiqueta)
+                switch resultado {
                 case .added(let book):
                     messages.append("Añadido: «\(book.title)» (\(book.authorGroup.rawValue)).")
                 case .duplicateFile(let existing):

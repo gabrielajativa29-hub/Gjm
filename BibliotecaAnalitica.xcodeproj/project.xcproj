@@ -18,6 +18,13 @@
         "up-to-next-major-version": "7.12.0",
       },
     },
+    {
+      "kind": "remote",
+      "repository": "https://github.com/weichsel/ZIPFoundation",
+      "version": {
+        "up-to-next-major-version": "0.9.0",
+      },
+    },
   ],
   "files": [
     { "kind": "folder", "path": "BibliotecaAnalitica", "target-membership": [ "BibliotecaAnalitica" ] },
@@ -48,6 +55,11 @@
         {
           "package": "GRDB",
           "product-name": "GRDB",
+          "build-phase": { "build-phase": "frameworks" },
+        },
+        {
+          "package": "ZIPFoundation",
+          "product-name": "ZIPFoundation",
           "build-phase": { "build-phase": "frameworks" },
         },
       ],

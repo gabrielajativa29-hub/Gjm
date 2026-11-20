@@ -25,6 +25,11 @@ struct GutendexBook: Decodable, Identifiable {
         formats["application/pdf"].flatMap { URL(string: $0) }
     }
 
+    /// URL de la portada (imagen JPEG), si la fuente la ofrece.
+    var portadaURL: URL? {
+        formats["image/jpeg"].flatMap { URL(string: $0) }
+    }
+
     /// Solo se descarga si la fuente lo marca como dominio público (EE. UU.) y hay PDF.
     var esDescargableAutomaticamente: Bool {
         copyright == false && pdfURL != nil

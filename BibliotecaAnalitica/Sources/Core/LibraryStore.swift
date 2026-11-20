@@ -172,8 +172,90 @@ final class LibraryStore {
             etiqueta: etiquetaFinal ?? ""
         )
 
-        return try dbQueue.write { db -> ImportResult in
-            if var existing = try Book.filter(Column("sha256") == hash).fetchOne(db) {
+        return try importarNuevo(data: data, draft: draft, grupo: grupo, etiqueta: etiquetaFinal) { db, book in
+            guard let libroId = book.id else { return }
+            let conTexto = try Self.indexarPaginas(de: pdf, libroId: libroId, en: db)
+            try Self.registrarEstadoOCR(libroId: libroId, paginasTotales: pdf.pageCount, paginasConTexto: conTexto, en: db)
+            book.paginasTotales = pdf.pageCount
+            book.ocrEstado = Self.estadoOCR(paginasTotales: pdf.pageCount, paginasConTexto: conTexto)
+            try? Self.guardarPortada(de: pdf, en: portadaURL(for: book))
+        }
+    }
+
+    /// Importa un EPUB: lo descomprime en una carpeta temporal, lee su estructura, guarda el texto de
+    /// cada capítulo (como «páginas») y su portada.
+    func importEPUB(from source: URL, grupo: AuthorGroup? = nil, etiqueta: String? = nil) throws -> ImportResult {
+        let didStartAccess = source.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccess { source.stopAccessingSecurityScopedResource() }
+        }
+
+        let data = try Data(contentsOf: source)
+        let hash = FileHasher.sha256Hex(of: data)
+
+        let temporal = FileManager.default.temporaryDirectory
+            .appendingPathComponent("epub-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: temporal, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: temporal) }
+
+        let archivo = temporal.appendingPathComponent("libro.epub")
+        try data.write(to: archivo)
+        let extraido = temporal.appendingPathComponent("contenido", isDirectory: true)
+        try EPUBArchivo.extraer(archivo, en: extraido)
+        let libro = try EPUBArchivo.leer(carpeta: extraido)
+
+        let fallbackTitle = source.deletingPathExtension().lastPathComponent
+        let title = libro.titulo.isEmpty ? fallbackTitle : libro.titulo
+        let authors = libro.autores
+        let etiquetaFinal = etiqueta ?? Self.etiquetaDesdeAutor(authors + " " + title)
+        let draft = Book(
+            sha256: hash,
+            fileName: "\(hash).epub",
+            format: .epub,
+            title: title,
+            authors: authors,
+            authorGroup: grupo ?? Self.inferGroup(fromAuthors: authors, title: title),
+            etiqueta: etiquetaFinal ?? ""
+        )
+
+        // El texto y la portada se leen antes de entrar en la transacción de la base de datos.
+        let textos = libro.capitulos.map { EPUBArchivo.texto(de: $0) }
+        let portadaDatos = libro.portada.flatMap { try? Data(contentsOf: $0) }
+
+        return try importarNuevo(data: data, draft: draft, grupo: grupo, etiqueta: etiquetaFinal) { db, book in
+            guard let libroId = book.id else { return }
+            var conTexto = 0
+            for (indice, texto) in textos.enumerated() {
+                let limpio = texto.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !limpio.isEmpty else { continue }
+                conTexto += 1
+                try db.execute(
+                    sql: "INSERT INTO pagina (bookId, numero, texto, textoNorm) VALUES (?, ?, ?, ?)",
+                    arguments: [libroId, indice + 1, limpio, TextNormalizer.indexKey(limpio)]
+                )
+            }
+            // Un EPUB no tiene páginas escaneadas: nunca necesita OCR.
+            book.paginasTotales = textos.count
+            book.ocrEstado = .noAplica
+            try book.update(db)
+            if let portadaDatos {
+                try FileManager.default.createDirectory(at: folder.appendingPathComponent("Portadas", isDirectory: true), withIntermediateDirectories: true)
+                try portadaDatos.write(to: portadaURL(for: book), options: .atomic)
+            }
+        }
+    }
+
+    /// Escribe un libro nuevo (archivo y ficha) tras comprobar duplicados por contenido y por ficha.
+    /// `indexar` recibe la ficha ya insertada (con su `id`) para guardar sus páginas y su portada.
+    private func importarNuevo(
+        data: Data,
+        draft: Book,
+        grupo: AuthorGroup?,
+        etiqueta etiquetaFinal: String?,
+        indexar: (Database, inout Book) throws -> Void
+    ) throws -> ImportResult {
+        try dbQueue.write { db -> ImportResult in
+            if var existing = try Book.filter(Column("sha256") == draft.sha256).fetchOne(db) {
                 // Si el libro ya estaba pero ahora llega con un grupo distinto (por ejemplo, desde una carpeta «freud»), se actualiza.
                 var cambio = false
                 if let grupo, existing.authorGroup != grupo {
@@ -210,13 +292,7 @@ final class LibraryStore {
 
             do {
                 try book.insert(db)
-                if let libroId = book.id {
-                    let conTexto = try Self.indexarPaginas(de: pdf, libroId: libroId, en: db)
-                    try Self.registrarEstadoOCR(libroId: libroId, paginasTotales: pdf.pageCount, paginasConTexto: conTexto, en: db)
-                    book.paginasTotales = pdf.pageCount
-                    book.ocrEstado = Self.estadoOCR(paginasTotales: pdf.pageCount, paginasConTexto: conTexto)
-                    try? Self.guardarPortada(de: pdf, en: portadaURL(for: book))
-                }
+                try indexar(db, &book)
             } catch {
                 // Si la inserción falla, no dejar un archivo huérfano.
                 try? FileManager.default.removeItem(at: destination)
