@@ -26,7 +26,7 @@ struct EPUBReaderView: View {
                         .disabled(indice == 0)
 
                         Spacer()
-                        Text("Capítulo \(indice + 1) de \(libro.capitulos.count)")
+                        Text(tituloSeccion(libro))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -53,6 +53,12 @@ struct EPUBReaderView: View {
         }
         .navigationTitle(book.title)
         .task { cargar() }
+    }
+
+    /// Título de la sección que se está leyendo. Sin números de página: un EPUB no está paginado.
+    private func tituloSeccion(_ libro: EPUBLibro) -> String {
+        let titulo = EPUBArchivo.titulo(de: libro.capitulos[indice])
+        return titulo.isEmpty ? "Sección sin título" : titulo
     }
 
     /// Carpeta de caché donde se descomprime este EPUB (una por huella SHA-256).

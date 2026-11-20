@@ -31,15 +31,31 @@ struct ResultadoCita: Identifiable, Hashable {
     let id = UUID()
     let bookId: Int64
     let titulo: String
-    /// Número de página del PDF (empieza en 1).
+    let formato: FileFormat
+    /// Número de página del PDF (empieza en 1). Solo aplica a PDF.
     let numeroPDF: Int
     let paginationOffset: Int
-    /// Texto completo de la página.
+    /// Título de la sección donde está el texto (EPUB). Vacío si no tiene título.
+    let seccion: String
+    /// Texto completo de la página o de la sección.
     let texto: String
+
+    /// Solo los PDF tienen paginación. EPUB y Word se citan por sección, sin número de página.
+    var esPaginado: Bool {
+        formato == .pdf
+    }
 
     /// Página impresa = página del PDF menos el desfase de la ficha.
     var paginaImpresa: Int {
         numeroPDF - paginationOffset
+    }
+
+    /// Texto que indica dónde está la cita.
+    var ubicacion: String {
+        if esPaginado {
+            return "Página impresa \(paginaImpresa) · página del PDF \(numeroPDF)"
+        }
+        return seccion.isEmpty ? "Sección sin título" : seccion
     }
 }
 
@@ -136,6 +152,12 @@ final class LibraryStore {
                 )
             }
         }
+        migrator.registerMigration("v5-ubicacion") { db in
+            // Nombre de la sección (EPUB). En PDF queda vacío: se cita por número de página.
+            try db.alter(table: "pagina") { t in
+                t.add(column: "ubicacion", .text).notNull().defaults(to: "")
+            }
+        }
         return migrator
     }
 
@@ -183,7 +205,7 @@ final class LibraryStore {
     }
 
     /// Importa un EPUB: lo descomprime en una carpeta temporal, lee su estructura, guarda el texto de
-    /// cada capítulo (como «páginas») y su portada.
+    /// cada capítulo (como sección, sin número de página) y su portada.
     func importEPUB(from source: URL, grupo: AuthorGroup? = nil, etiqueta: String? = nil) throws -> ImportResult {
         let didStartAccess = source.startAccessingSecurityScopedResource()
         defer {
@@ -220,6 +242,7 @@ final class LibraryStore {
 
         // El texto y la portada se leen antes de entrar en la transacción de la base de datos.
         let textos = libro.capitulos.map { EPUBArchivo.texto(de: $0) }
+        let titulos = libro.capitulos.map { EPUBArchivo.titulo(de: $0) }
         let portadaDatos = libro.portada.flatMap { try? Data(contentsOf: $0) }
 
         return try importarNuevo(data: data, draft: draft, grupo: grupo, etiqueta: etiquetaFinal) { db, book in
@@ -229,9 +252,10 @@ final class LibraryStore {
                 let limpio = texto.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !limpio.isEmpty else { continue }
                 conTexto += 1
+                // Sin número de página (el EPUB no tiene paginación): se guarda el título de la sección.
                 try db.execute(
-                    sql: "INSERT INTO pagina (bookId, numero, texto, textoNorm) VALUES (?, ?, ?, ?)",
-                    arguments: [libroId, indice + 1, limpio, TextNormalizer.indexKey(limpio)]
+                    sql: "INSERT INTO pagina (bookId, numero, texto, textoNorm, ubicacion) VALUES (?, 0, ?, ?, ?)",
+                    arguments: [libroId, limpio, TextNormalizer.indexKey(limpio), titulos[indice]]
                 )
             }
             // Un EPUB no tiene páginas escaneadas: nunca necesita OCR.
@@ -359,18 +383,21 @@ final class LibraryStore {
         guard !termino.isEmpty else { return [] }
         return try dbQueue.read { db in
             try Row.fetchAll(db, sql: """
-                SELECT p.bookId, p.numero, p.texto, b.title, b.paginationOffset
+                SELECT p.bookId, p.numero, p.texto, p.ubicacion, b.title, b.format, b.paginationOffset
                 FROM pagina p
                 JOIN book b ON b.id = p.bookId
                 WHERE p.textoNorm LIKE ?
                 ORDER BY b.title, p.numero
                 LIMIT ?
-                """, arguments: ["%\(termino)%", limite]).map { fila in
-                ResultadoCita(
+                """, arguments: ["%\(termino)%", limite]).map { fila -> ResultadoCita in
+                let formato: String = fila["format"]
+                return ResultadoCita(
                     bookId: fila["bookId"],
                     titulo: fila["title"],
+                    formato: FileFormat(rawValue: formato) ?? .pdf,
                     numeroPDF: fila["numero"],
                     paginationOffset: fila["paginationOffset"],
+                    seccion: fila["ubicacion"],
                     texto: fila["texto"]
                 )
             }

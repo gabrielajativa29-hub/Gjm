@@ -89,6 +89,21 @@ enum EPUBArchivo {
         return textoPlano(html)
     }
 
+    /// Título de una sección: su primer encabezado (h1 o h2) o, si no tiene, el de la etiqueta <title>.
+    /// Devuelve cadena vacía si no encuentra ninguno.
+    static func titulo(de capitulo: URL) -> String {
+        guard let html = try? String(contentsOf: capitulo, encoding: .utf8) else { return "" }
+        for etiqueta in ["h1", "h2", "title"] {
+            let patron = "<\(etiqueta)[^>]*>[\\s\\S]*?</\(etiqueta)>"
+            guard let rango = html.range(of: patron, options: [.regularExpression, .caseInsensitive]) else { continue }
+            let texto = textoPlano(String(html[rango]))
+                .replacingOccurrences(of: "\n", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !texto.isEmpty { return texto }
+        }
+        return ""
+    }
+
     static func textoPlano(_ html: String) -> String {
         var texto = html.replacingOccurrences(
             of: "<(script|style)[^>]*>[\\s\\S]*?</\\1>",

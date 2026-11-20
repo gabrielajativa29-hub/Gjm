@@ -25,7 +25,7 @@ struct CitasView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(resultado.titulo)
                             .font(.system(.headline, design: .serif))
-                        Text("Página impresa \(resultado.paginaImpresa) · página del PDF \(resultado.numeroPDF)")
+                        Text(resultado.ubicacion)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(fragmento(resultado.texto, buscado: consulta))
@@ -95,7 +95,7 @@ struct ExtraccionView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(resultado.titulo)
                 .font(.system(.title3, design: .serif))
-            Text("Página impresa \(resultado.paginaImpresa) · página del PDF \(resultado.numeroPDF)")
+            Text(resultado.ubicacion)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -108,7 +108,7 @@ struct ExtraccionView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            Text("Verifica la página en el ejemplar.")
+            Text(resultado.esPaginado ? "Verifica la página en el ejemplar." : "Verifica la cita en el ejemplar.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
