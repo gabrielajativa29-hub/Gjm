@@ -113,6 +113,13 @@
       "skillPath": "skills/bioservices/SKILL.md",
       "computedHash": "9a70e38058f4f798724605425e6ad1275667488a744c981034bd641f45fb7fb1"
     },
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorming/SKILL.md",
+      "computedHash": "a7424777b7f81e3eb9b4556d29fe233553736d8255780d3e1feea190fef61fef"
+    },
     "bulk-rnaseq": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
@@ -246,12 +253,26 @@
       "skillPath": "skills/dhdna-profiler/SKILL.md",
       "computedHash": "e542d220dac27683329962ca02aaeb3fb95967630c931f7176f80cebaff6e86c"
     },
+    "diagnosing-superpowers": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/diagnosing-superpowers/SKILL.md",
+      "computedHash": "44d0295c3d59d6418f80c96e40d8e7b7ece99513ab6e63e5d04b1cf87cc5bbab"
+    },
     "diffdock": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
       "sourceType": "github",
       "skillPath": "skills/diffdock/SKILL.md",
       "computedHash": "8236edb1f500786a57553563fee844d534c9c535d682dbdb93e3e8241d2c4c98"
+    },
+    "dispatching-parallel-agents": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/dispatching-parallel-agents/SKILL.md",
+      "computedHash": "d799e464fdfb0edc80b3b7ad7cce03e64ee07fc5db231c988688a81438503659"
     },
     "dnanexus-integration": {
       "source": "k-dense-ai/scientific-agent-skills",
@@ -281,6 +302,13 @@
       "skillPath": "skills/exa-search/SKILL.md",
       "computedHash": "15e1862bd6e8567886c4a761d3b04541d97219c06df97c0aac4130bb032b79e8"
     },
+    "executing-plans": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/executing-plans/SKILL.md",
+      "computedHash": "58b364f6e3f64602c7cfd0b34ceaad9de95d41fe7e4b46b274843ba19fc01ccc"
+    },
     "experimental-design": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
@@ -301,6 +329,13 @@
       "sourceType": "github",
       "skillPath": "skills/fictiv/SKILL.md",
       "computedHash": "1c62fa36c3c8e0f43a04fe9d2167191f589e3ac07fba5cc2f3ebeae37ce2847f"
+    },
+    "finishing-a-development-branch": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/finishing-a-development-branch/SKILL.md",
+      "computedHash": "7e24d821d45b8f10773edd9f1a4be2fac90eedae4f8fc8e70e34e27e44d3f3c0"
     },
     "flowio": {
       "source": "k-dense-ai/scientific-agent-skills",
@@ -959,6 +994,13 @@
       "skillPath": "skills/rdkit/SKILL.md",
       "computedHash": "a9c6a7d9e3d41b240b763b204169fd768ccb2dd292b2a7898e5701812a164abc"
     },
+    "receiving-code-review": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/receiving-code-review/SKILL.md",
+      "computedHash": "528d336858d6f7d22cfcb887a249409ce682cb7d37a939cb15a82f2576a35876"
+    },
     "relion": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
@@ -972,6 +1014,13 @@
       "sourceType": "github",
       "skillPath": "skills/relsa-severity-assessment/SKILL.md",
       "computedHash": "d5f64e4c4b76d1362e4a49060625fc4246358469ae08a651a10e3000996a9f8f"
+    },
+    "requesting-code-review": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/requesting-code-review/SKILL.md",
+      "computedHash": "32bcc25e8c3315d0150f646ee0067c9d4bfbc7719c34012db9c202e17cce8a14"
     },
     "research-grants": {
       "source": "k-dense-ai/scientific-agent-skills",
@@ -1134,12 +1183,26 @@
       "skillPath": "skills/statsmodels/SKILL.md",
       "computedHash": "be462bb27fd17f7f13a7db82011686a333f8aaedd308412bc2406b6f5a289e49"
     },
+    "subagent-driven-development": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/subagent-driven-development/SKILL.md",
+      "computedHash": "da0ad5e635b6ff70c2b6dbf25e51ae6ca1cad6beebfc61a791195675468c492e"
+    },
     "sympy": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
       "sourceType": "github",
       "skillPath": "skills/sympy/SKILL.md",
       "computedHash": "65dff85e76002972ec9edec94641bd69390613fdaae7e51eac9e5b1d79850295"
+    },
+    "systematic-debugging": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/systematic-debugging/SKILL.md",
+      "computedHash": "79ff0583175346e39431b0dc713b223edd1bd7a7ea2b6c8b78b2fb9a3fed6782"
     },
     "tamarind": {
       "source": "k-dense-ai/scientific-agent-skills",
@@ -1154,6 +1217,13 @@
       "sourceType": "github",
       "skillPath": "skills/tellurium/SKILL.md",
       "computedHash": "a31e4f517a4ddcbce7944c0d4eb77296353b624f0e40dc9a8e8539778263c6b2"
+    },
+    "test-driven-development": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/test-driven-development/SKILL.md",
+      "computedHash": "2782702b2cf69ace085ed30d067b6f8bfd2d777ad51770fc5bdae9cb5c1b5c04"
     },
     "tiledbvcf": {
       "source": "k-dense-ai/scientific-agent-skills",
@@ -1218,6 +1288,20 @@
       "skillPath": "skills/usfiscaldata/SKILL.md",
       "computedHash": "34db2286e65bf77af90245284436494bc1cde8e7bbdda1c0ae868ab18234a2e4"
     },
+    "using-git-worktrees": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/using-git-worktrees/SKILL.md",
+      "computedHash": "b69324cb5e5ba5b846fc2ae2811616008dc6f19858245100e472713190d4c9e4"
+    },
+    "using-superpowers": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/using-superpowers/SKILL.md",
+      "computedHash": "6a9104fac7e16c3cec2bc118943aefd331cac35b4cfabd427cea4dc16337c6a5"
+    },
     "vaex": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
@@ -1232,6 +1316,13 @@
       "skillPath": "skills/venue-templates/SKILL.md",
       "computedHash": "0c9b15c1995ba9c562002c00a9bf26b181b71c0bb894985bef28d131ccac794e"
     },
+    "verification-before-completion": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/verification-before-completion/SKILL.md",
+      "computedHash": "09b0e3a4689c1c38a3b8fc6ef57a1d4165aa33c0013d546dbde9dd348941a319"
+    },
     "waypoint-bio": {
       "source": "k-dense-ai/scientific-agent-skills",
       "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
@@ -1245,6 +1336,20 @@
       "sourceType": "github",
       "skillPath": "skills/what-if-oracle/SKILL.md",
       "computedHash": "7ad8f6f2ad8982e9f06f53c9451c7f3958b4ef8ca50a5eac33c6ae51b1c02378"
+    },
+    "writing-plans": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/writing-plans/SKILL.md",
+      "computedHash": "ef082ddb5354d736059397133b3682e8a0c85c57906affe47c9da354cbb7c91e"
+    },
+    "writing-skills": {
+      "source": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "github",
+      "skillPath": "skills/writing-skills/SKILL.md",
+      "computedHash": "50d87a4c2c6a9d60156ccfdbe844e0a11678968157e494a8a8c02377c273483a"
     },
     "zarr-python": {
       "source": "k-dense-ai/scientific-agent-skills",
